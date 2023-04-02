@@ -2,6 +2,10 @@ library(tidyverse)
 library(httr)
 library(janitor)
 
+# this function retrieved itf position data for a particular year, month, dekad
+# in two possible format type = "sf" return a sf linestring and type = "tibble" for
+# a dataframe
+
 get_noaa_itf <- function(year,month,dekad, type = "sf"){
   
   mon_dekad<- paste0(sprintf("%02d",month),dekad)
@@ -29,6 +33,7 @@ get_noaa_itf <- function(year,month,dekad, type = "sf"){
 }
 
 # download multiple year, month, dekad using above function 
+# this section uses functional programming capability of purrr
 
 year <- 2013:2014
 month <- 4:10
