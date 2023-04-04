@@ -46,6 +46,7 @@ itf_tibble <- pmap_dfr(.l = params,.f = get_noaa_itf)
 
 itf_tibble %>% 
   group_by(year, month, lon) %>% 
-  summarise(lat= mean(lat))
+  summarise(lat= mean(lat)) %>% 
+  ungroup()
 }
 
