@@ -1,6 +1,8 @@
 library(tidyverse)
 library(httr)
 library(janitor)
+library(sf)
+library(sfheaders)
 
 # this function retrieved itf position data for a particular year, month, dekad
 # in two possible format type = "sf" return a sf linestring and type = "tibble" for
@@ -20,9 +22,9 @@ get_noaa_itf <- function(year,month,dekad, type = "sf"){
     id <- paste(year,sprintf("%02d",month),dekad,sep="_")
     read_csv(file = url) %>% 
       mutate(id = id,.before = lat) %>% 
-      sfheaders::sf_linestring( x = "lon",
-                                y = "lat",
-                                linestring_id = "id") %>% 
+      sf_linestring( x = "lon",
+                     y = "lat",
+                     linestring_id = "id") %>% 
       st_set_crs(value = "EPSG:4326") %>% 
       separate(col = id,into = c("year","month","dekad"))  
     } else {
@@ -32,14 +34,18 @@ get_noaa_itf <- function(year,month,dekad, type = "sf"){
   }
 }
 
-# download multiple year, month, dekad using above function 
-# this section uses functional programming capability of purrr
+# ITF monthy mean position computation 
 
-year <- 2013:2014
-month <- 4:10
+itf_monthly_position <- function(year,month){
 dekad <- 1:3
-
-params <- expand_grid(year,month,dekad) %>% 
+type = "tibble"
+params <- expand_grid(year,month,dekad,type) %>% 
   map(.f = pluck)
 
-itf_sf <- pmap_dfr(.l = params,.f = get_noaa_itf)
+itf_tibble <- pmap_dfr(.l = params,.f = get_noaa_itf)
+
+itf_tibble %>% 
+  group_by(year, month, lon) %>% 
+  summarise(lat= mean(lat))
+}
+
